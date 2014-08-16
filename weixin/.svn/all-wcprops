@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/wechatest0/!svn/ver/1/1/weixin
+END
+wsgi.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/wechatest0/!svn/ver/1/1/weixin/wsgi.py
+END
+views.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/wechatest0/!svn/ver/36/1/weixin/views.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/wechatest0/!svn/ver/1/1/weixin/__init__.py
+END
+settings.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/wechatest0/!svn/ver/1/1/weixin/settings.py
+END
+urls.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/wechatest0/!svn/ver/1/1/weixin/urls.py
+END
