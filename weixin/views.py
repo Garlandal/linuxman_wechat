@@ -8,9 +8,18 @@ import time,hashlib
 import datetime
 import urllib
 import urllib2
+import json
 import re
 
-TOKEN = "Your Tokne"
+TOKEN = "Your Token"
+
+TURING_API = "Your Turing API"
+
+WELCOME = ""
+INTRODUCE = ""
+ACTIVITY = ""
+
+SOURCES = ""
 
 
 @csrf_exempt
@@ -44,12 +53,26 @@ def checkSignature(request):
 def responseMsg(request):
     rawStr = smart_str(request.raw_post_data)
     msg = paraseMsgXml(ET.fromstring(rawStr))
-    replyContent = msg['Content']
-    inpu = deal(replyContent)
-    if len(inpu) > 10:
-		return getReplyXml(msg,inpu)
+
+    global WELCOME,INTRODUCE,ACTIVITY,SOURCES
+    if msg.get('MsgType') == 'event':
+		event = msg.get('Event')
+		if event == 'subscribe':
+			return getReplyXml(msg,WELCOME)
+    info = msg['Content']
+    if info == '1':
+		return getReplyXml(msg,INTRODUCE)
+    if info == '2':
+		return getReplyXml(msg,ACTIVITY)
+    if info == '3':
+		return getReplyXml(msg,SOURCES)
+    if info[:4] == 'man ':
+		return getReplyXml(msg,man(info[4:]))
     else:
-		return getReplyXml(msg,man(inpu))
+		url = ' http://www.tuling123.com/openapi/api?key=8970e526edc1e26dfd71b2ef68296d9f&info=' + info
+		content = urllib.urlopen(url).read()
+		myjson = json.loads(content)
+		return getReplyXml(msg,myjson['text'])
 
 def paraseMsgXml(rootElem):
     msg = {}
@@ -59,41 +82,31 @@ def paraseMsgXml(rootElem):
     return msg
 
 def getReplyXml(msg,replyContent):
-    TextReply = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[%s]]></MsgType><Content><![CDATA[%s]]></Content><FuncFlag>0</FuncFlag></xml>";
+    TextReply = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[%s]]></MsgType><Content><![CDATA[%s]]></Content><FuncFlag>0</FuncFlag></xml>"
     TextReply = TextReply % (msg['FromUserName'],msg['ToUserName'],str(int(time.time())),'text',replyContent)
     return TextReply
 
-def deal(inpu):
-	command = inpu.split(' ')
-	if len(command) == 2 and command[0] == 'man':
-		realcom = command[1].strip()
-		return realcom
-	else:
-		error = '错啦，请按正确格式输入(man command)!'
-		return error
-
 def man(com):
-    if type(com) == int or type(com) == float:
-		res0 = 'Please input correct command'
-		return res0
-    else:
-		url = 'http://l.51yip.com/search/%s' % com
-		content = urllib.urlopen(url).read()
-		if len(content) < 10000:
-			res1 = 'Nothing Found, Please Check Your Command'
-			return res1
+		if type(com) == int or type(com) == float:
+			res0 = '请按照正确格式输入(man command)'
+			return res0
 		else:
-			pat0 = re.compile(r'<pre>(.+?)</pre>',re.DOTALL)
-			html0 = re.findall(pat0, content)
-			html1 = re.sub(r'<br.{0,5}>','\n',html0[0])
-			html2 = re.sub(r'&nbsp;',' ',html1)
-			html3 = re.sub(r'<.*p>',' ',html2)
-			html4 = html3.replace('&lt;','<')
-			html5 = html4.replace('&gt;','>')
-			html6 = html5.replace('&quot;','"')
-			zh = html6.replace('&amp','&')
-			if len(zh) < 2047:
-				return zh
-			else: 
-				return zh[0:2047]
-
+			url = 'http://l.51yip.com/search/%s' % com
+			content = urllib.urlopen(url).read()
+			if len(content) < 10000:
+				res1 = '暂时还没有发现相应的中文man'
+				return res1
+			else:
+				pat0 = re.compile(r'<pre>(.+?)</pre>',re.DOTALL)
+				html0 = re.findall(pat0, content)
+				html1 = re.sub(r'<br.{0,5}>','\n',html0[0])
+				html2 = re.sub(r'&nbsp;',' ',html1)
+				html3 = re.sub(r'<.*p>',' ',html2)
+				html4 = html3.replace('&lt;','<')
+				html5 = html4.replace('&gt;','>')
+				html6 = html5.replace('&quot;','"')
+				zh = html6.replace('&amp','&')
+				if len(zh) < 2047:
+					return zh
+				else: 
+					return zh[0:2047]
